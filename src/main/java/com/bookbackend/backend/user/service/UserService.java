@@ -1,5 +1,6 @@
 package com.bookbackend.backend.user.service;
 
+import com.bookbackend.backend.config.JWTProvider;
 import com.bookbackend.backend.user.dto.*;
 import com.bookbackend.backend.user.entity.User;
 import com.bookbackend.backend.user.repository.UserRepository;
@@ -13,66 +14,135 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTProvider jwtProvider;
 
-    // 회원가입
-    public UserResponse signup(UserSignupRequest request) {
+    // ------------------------------
+    // 🔹 회원가입
+    // ------------------------------
+    public JWTResponse signup(SignUpRequest request) {
 
-        // 1) 빈 값 체크 → 402
-        if (isBlank(request.getUser_id()) ||
-                isBlank(request.getUser_password()) ||
+        // 1. 빈 값 체크
+        if (isBlank(request.getLoginId()) ||
+                isBlank(request.getPassword()) ||
                 isBlank(request.getName())) {
-            throw new IllegalArgumentException("EMPTY"); // 나중에 컨트롤러에서 코드 매핑
+            throw new IllegalArgumentException("EMPTY");
         }
 
-        // 2) 아이디 중복 체크 → 401
-        if (userRepository.existsByUserId(request.getUser_id())) {
+        // 2. 중복 아이디 체크
+        if (userRepository.existsByLoginId(request.getLoginId())) {
             throw new IllegalStateException("DUPLICATE_ID");
         }
 
-        // 3) 비밀번호 암호화
-        String encodedPw = passwordEncoder.encode(request.getUser_password());
+        // 3. 비밀번호 암호화
+        String encodedPw = passwordEncoder.encode(request.getPassword());
 
-        // JW 토큰
-        // 추가 요구사항  - pull requ
-
-        // 4) 엔티티 생성 & 저장
+        // 4. 엔티티 생성
         User user = User.builder()
-                .userId(request.getUser_id())
-                .userPassword(encodedPw)
+                .loginId(request.getLoginId())
+                .password(encodedPw)
                 .name(request.getName())
                 .build();
 
         User saved = userRepository.save(user);
 
-        return new UserResponse(
-                saved.getId(),
-                saved.getUserId(),
-                saved.getUserPassword(),
-                saved.getName()
+        // 5. JWT 발급
+        String access = jwtProvider.generateAccessToken(saved.getLoginId());
+        String refresh = jwtProvider.generateRefreshToken(saved.getLoginId());
+
+        return new JWTResponse(
+                access,
+                refresh,
+                jwtProvider.getAccessTokenExpiry()
         );
     }
 
-    // 로그인
-    public UserResponse login(UserLoginRequest request) {
+    // ------------------------------
+    // 🔹 로그인
+    // ------------------------------
+    public JWTResponse login(LoginRequset request) {
 
-        // 아이디 존재 여부 체크
-        User user = userRepository.findByUserId(request.getUser_id())
+        User user = userRepository.findByLoginId(request.getLoginId())
                 .orElseThrow(() -> new IllegalArgumentException("LOGIN_FAIL"));
 
-        // 패스워드 검증
-        if (!passwordEncoder.matches(request.getUser_password(), user.getUserPassword())) {
+        // 비밀번호 일치 검사
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("LOGIN_FAIL");
         }
 
-        return new UserResponse(
-                user.getId(),
-                user.getUserId(),
-                user.getUserPassword(),
-                user.getName()
+        // JWT 발급
+        String access = jwtProvider.generateAccessToken(user.getLoginId());
+        String refresh = jwtProvider.generateRefreshToken(user.getLoginId());
+
+        return new JWTResponse(
+                access,
+                refresh,
+                jwtProvider.getAccessTokenExpiry()
         );
     }
 
-    private boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
+    // ------------------------------
+    // 🔹 회원 정보 수정
+    // ------------------------------
+    public UpdateUserResponse updateUser(UpdateUserRequest request) {
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("NOT_FOUND_USER"));
+
+        // loginId 변경
+        if (!isBlank(request.getLoginId())) {
+
+            // 중복 아이디 체크 (자기 자신 제외)
+            if (userRepository.existsByLoginId(request.getLoginId()) &&
+                    !request.getLoginId().equals(user.getLoginId())) {
+
+                throw new IllegalStateException("DUPLICATE_ID");
+            }
+
+            user.setLoginId(request.getLoginId());
+        }
+
+        // 비밀번호 변경
+        if (!isBlank(request.getPassword())) {
+            String encodedPw = passwordEncoder.encode(request.getPassword());
+            user.setPassword(encodedPw);
+        }
+
+        // 이름 변경
+        if (!isBlank(request.getName())) {
+            user.setName(request.getName());
+        }
+
+        User updated = userRepository.save(user);
+
+        return new UpdateUserResponse(
+                updated.getUserId(),
+                updated.getLoginId(),
+                updated.getName()
+        );
+    }
+
+    // ------------------------------
+    // 🔹 회원 탈퇴
+    // ------------------------------
+    public ResignResponse resign(ResignRequest request) {
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("NOT_FOUND_USER"));
+
+        // 탈퇴 시 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("INVALID_PASSWORD");
+        }
+
+        userRepository.delete(user);
+
+        return new ResignResponse("회원 탈퇴 완료");
+    }
+
+    // ------------------------------
+    // 🔹 내부 공용 유틸 함수
+    // ------------------------------
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

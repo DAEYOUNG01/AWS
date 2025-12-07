@@ -1,5 +1,6 @@
 package com.bookbackend.backend.book.entity;
 
+import com.bookbackend.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,7 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "book_id")
-    private Long book_id;
+    private Long bookId;
 
     @Column(length = 50, nullable = false)
     private String title;
@@ -38,7 +39,7 @@ public class Book {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "uset_id")
     private User user;
 
     @PrePersist
