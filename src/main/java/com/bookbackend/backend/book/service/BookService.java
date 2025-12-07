@@ -36,7 +36,7 @@ public class BookService {
         Book saved = bookRepository.save(book);
 
         // 저장된 엔티티를 BookResponse로 변환 후 반환
-        return BookResponse.of(saved);
+        return BookResponse.from(saved);
     }
     //사용자별 책 목록 조회
     public List<BookResponse> getBooksByUser(Long userId){
@@ -45,7 +45,7 @@ public class BookService {
        List<Book> books = bookRepository.findByUser(user);
 
        return books.stream()
-               .map(BookResponse::of)
+               .map(BookResponse::from)
                .toList();
     }
     //책 상세 내용 조회
@@ -53,7 +53,7 @@ public class BookService {
        Book book = bookRepository.findById(bookId)
                .orElseThrow(() -> new RuntimeException("Book not found"));
 
-       return BookResponse.of(book);
+       return BookResponse.from(book);
     }
     //책 수정
     public BookResponse updateBook(Long bookId, BookUpdateRequest request){
@@ -68,7 +68,7 @@ public class BookService {
 
        Book updated = bookRepository.save(book);
 
-       return BookResponse.of(updated);
+       return BookResponse.from(updated);
     }
     //책 삭제
     public void deleteBook(Long bookID){
@@ -76,6 +76,13 @@ public class BookService {
         Book book = bookRepository.findById(bookID)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
         bookRepository.delete(book);
+    }
+    //책 리스트
+    public List<BookResponse> getAllBooks() {
+        return bookRepository.findAll()
+                .stream()
+                .map(BookResponse::from)
+                .toList();
     }
 }
 
