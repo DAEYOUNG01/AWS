@@ -14,14 +14,14 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 사용자 uuid (PK)
+    private Long userId;
 
-    @Column(name = "user_id", nullable = false, unique = true, length = 50)
-    private String userId; // 로그인용 아이디
+    @Column(name = "login_id", nullable = false, unique = true, length = 50)
+    private String loginId;
 
-    @Column(name = "user_password", nullable = false, length = 100)
-    private String userPassword; // 비밀번호(암호화 저장 권장)
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
 
     @Column(name = "name", nullable = false, length = 20)
-    private String name; // 사용자 이름
+    private String name;
 }

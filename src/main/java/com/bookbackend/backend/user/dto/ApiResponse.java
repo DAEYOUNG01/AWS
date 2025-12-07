@@ -1,7 +1,11 @@
 package com.bookbackend.backend.user.dto;
 
+import lombok.Getter;
+
+@Getter
 public class ApiResponse<T> {
 
+    // getter 들
     private String status;
     private String message;
     private T data;
@@ -12,11 +16,4 @@ public class ApiResponse<T> {
         this.message = message;
         this.data = data;
     }
-
-    // getter 들
-    public String getStatus() { return status; }
-    public String getMessage() { return message; }
-    public T getData() { return data; }
-
-    // 필요하면 setter 도 추가
 }
