@@ -73,8 +73,14 @@ public class BookController {
     }
     //책 검색
     @Operation(summary = "책 검색", description = "책 title로 책 검색")
-    @GetMapping("/search")
+    @GetMapping("/titlesearch")
     public List<BookListResponse> searchBooks(@RequestParam String title){
         return bookService.searchBooksByTitle(title);
+    }
+    //모든 유저 책 목록
+    @Operation(summary = "전체 책 목록 조회", description = "모든 사용자가 작성한 책 목록을 조회")
+    @GetMapping("/all")
+    public List<BookListResponse> getAllBooks(){
+        return bookService.getAllBooks();
     }
 }
