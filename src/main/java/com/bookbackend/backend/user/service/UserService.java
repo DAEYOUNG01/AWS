@@ -1,6 +1,8 @@
 package com.bookbackend.backend.user.service;
 
 import com.bookbackend.backend.config.JWTProvider;
+import com.bookbackend.backend.global.exception.CustomException;
+import com.bookbackend.backend.global.exception.ErrorCode;
 import com.bookbackend.backend.user.dto.*;
 import com.bookbackend.backend.user.entity.User;
 import com.bookbackend.backend.user.repository.UserRepository;
@@ -16,21 +18,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JWTProvider jwtProvider;
 
-    // ------------------------------
-    // 🔹 회원가입
-    // ------------------------------
     public JWTResponse signup(SignUpRequest request) {
-
-        // 1. 빈 값 체크
-        if (isBlank(request.getLoginId()) ||
-                isBlank(request.getPassword()) ||
-                isBlank(request.getName())) {
-            throw new IllegalArgumentException("EMPTY");
-        }
 
         // 2. 중복 아이디 체크
         if (userRepository.existsByLoginId(request.getLoginId())) {
-            throw new IllegalStateException("DUPLICATE_ID");
+            throw new CustomException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
 
         // 3. 비밀번호 암호화
@@ -56,17 +48,14 @@ public class UserService {
         );
     }
 
-    // ------------------------------
-    // 🔹 로그인
-    // ------------------------------
     public JWTResponse login(LoginRequset request) {
 
         User user = userRepository.findByLoginId(request.getLoginId())
-                .orElseThrow(() -> new IllegalArgumentException("LOGIN_FAIL"));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 비밀번호 일치 검사
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("LOGIN_FAIL");
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
         // JWT 발급
@@ -80,22 +69,17 @@ public class UserService {
         );
     }
 
-    // ------------------------------
-    // 🔹 회원 정보 수정
-    // ------------------------------
     public UpdateUserResponse updateUser(UpdateUserRequest request) {
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("NOT_FOUND_USER"));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // loginId 변경
         if (!isBlank(request.getLoginId())) {
 
             // 중복 아이디 체크 (자기 자신 제외)
-            if (userRepository.existsByLoginId(request.getLoginId()) &&
-                    !request.getLoginId().equals(user.getLoginId())) {
-
-                throw new IllegalStateException("DUPLICATE_ID");
+            if (userRepository.existsByLoginId(request.getLoginId()) && !request.getLoginId().equals(user.getLoginId())) {
+                throw new CustomException(ErrorCode.DUPLICATE_LOGIN_ID);
             }
 
             user.setLoginId(request.getLoginId());
@@ -121,17 +105,13 @@ public class UserService {
         );
     }
 
-    // ------------------------------
-    // 🔹 회원 탈퇴
-    // ------------------------------
     public ResignResponse resign(ResignRequest request) {
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("NOT_FOUND_USER"));
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 탈퇴 시 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("INVALID_PASSWORD");
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
         userRepository.delete(user);
