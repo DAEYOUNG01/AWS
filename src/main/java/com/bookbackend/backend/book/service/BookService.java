@@ -99,4 +99,12 @@ public class BookService {
                 .map(BookListResponse::of)
                 .toList();
     }
+    //전체 책 조회
+    @Transactional(readOnly = true)
+    public List<BookListResponse> getAllBooks() {
+        return bookRepository.findAll()
+                .stream()
+                .map(BookListResponse::of)
+                .toList();
+    }
 }
