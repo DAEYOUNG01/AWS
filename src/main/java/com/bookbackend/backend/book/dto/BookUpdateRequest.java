@@ -11,7 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class BookUpdateRequest {
     private String title;
-    private String description;
     private String content;
     private String genre;
     private String author;

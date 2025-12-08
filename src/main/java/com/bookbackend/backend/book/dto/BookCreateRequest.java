@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class BookCreateRequest {
     private String title;
-    private String description;
     private String content;
     private String genre;
     private String author;
