@@ -1,9 +1,6 @@
 package com.bookbackend.backend.book.controller;
 
-import com.bookbackend.backend.book.dto.BookCreateRequest;
-import com.bookbackend.backend.book.dto.BookDetailResponse;
-import com.bookbackend.backend.book.dto.BookListResponse;
-import com.bookbackend.backend.book.dto.BookUpdateRequest;
+import com.bookbackend.backend.book.dto.*;
 import com.bookbackend.backend.book.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -82,5 +79,14 @@ public class BookController {
     @GetMapping("/all")
     public List<BookListResponse> getAllBooks(){
         return bookService.getAllBooks();
+    }
+    //책 표지 url 추가
+    @Operation(summary = "책 표지 추가", description = "AI로 생성된 책 표지 이미지 URL 저장")
+    @PutMapping("/{bookId}/imageURL")
+    public BookDetailResponse updateBookImage(
+            @PathVariable Long bookId,
+            @RequestBody BookImageRequest request
+    ){
+        return bookService.updateBookImage(bookId, request.getImageUrl());
     }
 }

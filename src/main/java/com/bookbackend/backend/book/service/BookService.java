@@ -1,9 +1,6 @@
 package com.bookbackend.backend.book.service;
 
-import com.bookbackend.backend.book.dto.BookCreateRequest;
-import com.bookbackend.backend.book.dto.BookDetailResponse;
-import com.bookbackend.backend.book.dto.BookListResponse;
-import com.bookbackend.backend.book.dto.BookUpdateRequest;
+import com.bookbackend.backend.book.dto.*;
 import com.bookbackend.backend.book.entity.Book;
 import com.bookbackend.backend.book.repository.BookRepository;
 import com.bookbackend.backend.global.exception.CustomException;
@@ -106,5 +103,16 @@ public class BookService {
                 .stream()
                 .map(BookListResponse::of)
                 .toList();
+    }
+    //책 이미지 추가
+    @Transactional
+    public BookDetailResponse updateBookImage(Long bookId, String  imageUrl) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
+        book.setImageUrl(imageUrl);
+
+        Book updated = bookRepository.save(book);
+
+        return BookDetailResponse.of(updated);
     }
 }
