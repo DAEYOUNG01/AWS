@@ -223,7 +223,7 @@ public BookDetailResponse createBook(
 
 이를 통해 요청이 Controller에 도달하는 시점에서 잘못된 값을 자동 찬단하였고,
 
-GlobalExceptionHandler가 MethodArgumentNotValidException을 받아 일관된 에르 응답으로 반환하였다.
+GlobalExceptionHandler가 MethodArgumentNotValidException을 받아 일관된 에러 응답으로 반환하였다.
 
 #### 5) 정리
 
