@@ -34,19 +34,18 @@ Spring Boot 기반의 REST API 서버로 설계되었으며, 회원 인증, 도�
 ![ERD Diagram](.github/images/ERD_Diagram.png)
 
 ### **배포 아키텍쳐**
-<div style="display: flex; justify-content: space-between; gap: 20px;">
-  <div style="flex: 1; text-align: center;">
-    <h3>아키텍처</h3>
-    <img src=".github/images/CICD_architecture.png"
-         style="width: 100%; height: 600px; object-fit: contain;">
-  </div>
-  <div style="flex: 1; text-align: center;">
-    <h3>동작 흐름</h3>
-    <img src=".github/images/CICD_FlowChart.png"
-         style="width: 100%; height: 600px; object-fit: contain;">
-  </div>
-</div>
-
+<table>
+  <tr>
+    <td align="center" width="49%">
+      <h3>아키텍처</h3>
+      <img src=".github/images/CICD_architecture.png" width="100%" height="500px" style="object-fit: contain;">
+    </td>
+    <td align="center" width="49%">
+      <h3>동작 흐름</h3>
+      <img src=".github/images/CICD_FlowChart.png" width="100%" height="500px" style="object-fit: contain;">
+    </td>
+  </tr>
+</table>
 
 ## 상세 기술구현
 본 프로젝트 구현 과정에서 특히 심도 있게 다뤘던 부분은 아래 세 가지입니다.
