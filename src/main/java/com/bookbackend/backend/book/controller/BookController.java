@@ -85,7 +85,7 @@ public class BookController {
     @PutMapping("/{bookId}/imageURL")
     public BookDetailResponse updateBookImage(
             @PathVariable Long bookId,
-            @RequestBody BookImageRequest request
+            @Valid @RequestBody BookImageRequest request
     ){
         return bookService.updateBookImage(bookId, request.getImageUrl());
     }
