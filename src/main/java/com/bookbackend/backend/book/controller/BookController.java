@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -19,13 +21,13 @@ public class BookController {
 
     // 책 등록
     @Operation(summary = "책 등록", description = "특정 사용자가 새로운 책을 등록합니다.")
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BookDetailResponse createBook(
-            @Parameter(description = "책을 등록하는 사용자 ID", example = "1")
             @RequestParam Long userId,
-            @Valid @RequestBody BookCreateRequest request
+            @RequestPart("book") @Valid BookCreateRequest request,
+            @RequestPart("image") MultipartFile image
     ) {
-        return bookService.createBook(userId, request);
+        return bookService.createBook(userId, request, image);
     }
 
     // 사용자별 책 목록 조회
@@ -49,14 +51,13 @@ public class BookController {
     }
 
     // 책 수정
-    @Operation(summary = "책 수정", description = "책 ID로 책 정보를 수정합니다.")
-    @PutMapping("/{bookId}")
+    @PutMapping(value = "/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BookDetailResponse updateBook(
-            @Parameter(description = "수정할 책 ID", example = "10")
             @PathVariable Long bookId,
-            @Valid @RequestBody BookUpdateRequest request
+            @RequestPart("data") @Valid BookUpdateRequest request,
+            @RequestPart("image") MultipartFile image
     ) {
-        return bookService.updateBook(bookId, request);
+        return bookService.updateBook(bookId, request, image);
     }
 
     // 책 삭제
@@ -81,12 +82,15 @@ public class BookController {
         return bookService.getAllBooks();
     }
     //책 표지 url 추가
-    @Operation(summary = "책 표지 추가", description = "AI로 생성된 책 표지 이미지 URL 저장")
-    @PutMapping("/{bookId}/imageURL")
+    @Operation(summary = "책 표지 수정", description = "책 표지 이미지를 업로드하여 변경")
+    @PutMapping(
+            value = "/{bookId}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public BookDetailResponse updateBookImage(
             @PathVariable Long bookId,
-            @Valid @RequestBody BookImageRequest request
-    ){
-        return bookService.updateBookImage(bookId, request.getImageUrl());
+            @RequestPart("image") MultipartFile image
+    ) {
+        return bookService.updateBookImage(bookId, image);
     }
 }
