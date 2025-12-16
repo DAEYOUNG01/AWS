@@ -10,6 +10,7 @@ import com.bookbackend.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,24 +20,30 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service; //S3 url 저장할 필드
 
     // 책 등록
     @Transactional
-    public BookDetailResponse createBook(Long userId, BookCreateRequest request) {
+    public BookDetailResponse createBook(
+            Long userId,
+            BookCreateRequest request,
+            MultipartFile image
+    ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String s3ImageUrl = s3Service.upload(image);
 
         Book book = Book.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .genre(request.getGenre())
                 .author(request.getAuthor())
-                .imageUrl(request.getImageUrl())
+                .imageUrl(s3ImageUrl)
                 .user(user)
                 .build();
 
-        Book saved = bookRepository.save(book);
-        return BookDetailResponse.of(saved);
+        return BookDetailResponse.of(bookRepository.save(book));
     }
 
     // 사용자별 책 목록 조회
@@ -63,18 +70,25 @@ public class BookService {
 
     // 책 수정
     @Transactional
-    public BookDetailResponse updateBook(Long bookId, BookUpdateRequest request) {
+    public BookDetailResponse updateBook(
+            Long bookId,
+            BookUpdateRequest request,
+            MultipartFile image
+    ) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
+
+        if (image != null && !image.isEmpty()) {
+            String s3ImageUrl = s3Service.upload(image);
+            book.setImageUrl(s3ImageUrl);
+        }
 
         book.setTitle(request.getTitle());
         book.setGenre(request.getGenre());
         book.setContent(request.getContent());
         book.setAuthor(request.getAuthor());
-        book.setImageUrl(request.getImageUrl());
 
-        Book updated = bookRepository.save(book);
-        return BookDetailResponse.of(updated);
+        return BookDetailResponse.of(book);
     }
 
     // 책 삭제
@@ -108,13 +122,13 @@ public class BookService {
     }
     //책 이미지 추가
     @Transactional
-    public BookDetailResponse updateBookImage(Long bookId, String  imageUrl) {
+    public BookDetailResponse updateBookImage(Long bookId, MultipartFile image) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
-        book.setImageUrl(imageUrl);
 
-        Book updated = bookRepository.save(book);
+        String s3ImageUrl = s3Service.upload(image);
+        book.setImageUrl(s3ImageUrl);
 
-        return BookDetailResponse.of(updated);
+        return BookDetailResponse.of(book);
     }
 }

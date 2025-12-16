@@ -7,6 +7,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+        name = "book",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"user_id", "title", "author"}
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,16 +30,14 @@ public class Book {
     @Column(length = 50, nullable = false)
     private String title;
 
-    //@Column(length = 200)
-    //private String description;
-
     private String content;
 
     @Column(length = 50)
     private String genre;
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String author;
+
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
 
@@ -39,7 +45,7 @@ public class Book {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uset_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @PrePersist
